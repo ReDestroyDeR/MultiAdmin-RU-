@@ -24,7 +24,7 @@ namespace MultiAdmin.MultiAdmin.Features
 
 		public override void Init()
 		{
-			logToOwnFile = false;
+			logToOwnFile = true;
 			this.modLogLocation = Server.LogFolder + Server.StartDateTime + "_MODERATOR_output_log.txt";
 		}
 
@@ -36,9 +36,7 @@ namespace MultiAdmin.MultiAdmin.Features
 				{
 					using (StreamWriter sw = File.AppendText(this.modLogLocation))
 					{
-						DateTime now = DateTime.Now;
-						string date = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
-						sw.WriteLine(date + message);
+						sw.WriteLine(message);
 					}
 				}
 			}
