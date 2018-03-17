@@ -4,7 +4,7 @@ MultiAdmin это серверный инструмент для SCP: Secret Lab
 [ENG]
 Последний релиз может быть найден: [Release link](https://github.com/Grover-c13/MultiAdmin/releases/latest)
 [RU]
-Последний релиз может быть найден: [Release link](https://github.com/Grover-c13/MultiAdmin/releases/latest)
+Последний релиз может быть найден: [Release link](https://github.com/ReDestroyDeR/MultiAdmin-RU-/releases/latest)
 
 --Дальше выучите английский или можете не читать--
 --Потом переведу ReadMe до конца--
