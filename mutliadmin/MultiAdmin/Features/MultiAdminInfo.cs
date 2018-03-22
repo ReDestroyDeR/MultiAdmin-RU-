@@ -29,7 +29,10 @@ namespace MultiAdmin.MultiAdmin.Commands
             Server.Write("Реализованно под Mozzila Public License 2.0", ConsoleColor.DarkMagenta);
             Server.Write("У Вас много бабок? Довольны multiadmin/servermod? Отправьте мне на дошик!", ConsoleColor.Gray);
             Server.Write("Paypal: Grover.c13@gmail.com", ConsoleColor.Gray);
-            Server.Write("Переведено и улучшено : ReDestroyDeR");
+            Server.Write("Переведено и улучшено : ReDestroyDeR", ConsoleColor.Cyan);
+            Server.Write("Хотите поддержать разработчика RU версии и SCPSL RU Community? Сделайте нам подарок, отправьте нам деньги!", ConsoleColor.DarkCyan);
+            Server.Write("Qiwi: +7 (916) 859-59-01", ConsoleColor.DarkCyan);
+
         }
 
         public override string GetFeatureDescription()

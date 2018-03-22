@@ -19,12 +19,12 @@ namespace MultiAdmin.MultiAdmin.Commands
 
         public override string GetFeatureDescription()
         {
-            return "Обновляет ТайтлБар. ( Требуется servermod для полной функциональности )";
+            return "Updates the title bar with instance based information, such as session id and player count. (Requires servermod to function fully)";
         }
 
         public override string GetFeatureName()
         {
-            return "ТайтлБар";
+            return "Titlebar";
         }
 
         public override void Init()
@@ -59,15 +59,23 @@ namespace MultiAdmin.MultiAdmin.Commands
         {
 			if (Server.SkipProcessHandle() || Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero)
 			{
-				var smod = "";
+                var displayPlayerCount = playerCount;
+                var smod = "";
+
 				if (Server.HasServerMod)
 				{
 					smod = "SMod " + Server.ServerModVersion;
 				}
-				var displayPlayerCount = playerCount;
+                else if (displayPlayerCount != 0)
+                {
+                    smod = "Проверка на Сервер Мод . . .";
+                }
+                else {
+                    smod = "Установите СерверМод!";
+                }
 				if (playerCount == -1) displayPlayerCount = 0;
-				string proccessId = (Server.GetGameProccess() == null) ? "" : Server.GetGameProccess().Id.ToString();
-				Console.Title = "MultiAdmin " + Server.MA_VERSION + " | Сервер: " + Server.ConfigKey + " | Сессия:" + Server.GetSessionId() + " PID: " + proccessId + " | " + displayPlayerCount + "/" + maxPlayers + " | " + smod;
+				string proccessId = (Server.GetGameProccess() == null) ? "Запуск сервера . . ." : Server.GetGameProccess().Id.ToString();
+				Console.Title = "MultiAdmin-RU " + Server.MA_VERSION + " | " + Server.ConfigKey + " | Session:" + Server.GetSessionId() + " PID: " + proccessId + " | " + displayPlayerCount + "/" + maxPlayers + " | " + smod;
 			}
         }
     }

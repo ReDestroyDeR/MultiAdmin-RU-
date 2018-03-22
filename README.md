@@ -1,10 +1,10 @@
-# MultiAdmin-RU
+# MultiAdmin
 MultiAdmin это серверный инструмент для SCP: Secret Labratories, который сделан для помощи серверам иметь множество конфигураций в 1ой инстанции.
 
 [ENG]
 Последний релиз может быть найден: [Release link](https://github.com/Grover-c13/MultiAdmin/releases/latest)
 [RU]
-Последний релиз может быть найден: [Release link](https://github.com/ReDestroyDeR/MultiAdmin-RU-/releases/latest)
+Последний релиз может быть найден: [Release link](https://github.com/Grover-c13/MultiAdmin/releases/latest)
 
 --Дальше выучите английский или можете не читать--
 --Потом переведу ReadMe до конца--
@@ -54,3 +54,4 @@ This does not include ServerMod or ingame commands, for a full list type HELP in
 - restart_every_num_rounds (restart the server every x rounds)
 - restart_low_memory (restart if the games memory falls below this, default = 400)
 - restart_low_memory_roundend (restart if the games memory falls below this at the end of this round, default = 400)
+

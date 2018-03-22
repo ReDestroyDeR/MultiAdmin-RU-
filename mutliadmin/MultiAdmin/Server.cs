@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using MultiAdmin.MultiAdmin.Commands;
 using MultiAdmin.MultiAdmin.Features;
@@ -10,11 +12,11 @@ namespace MultiAdmin.MultiAdmin
 {
     public class Server
     {
-        public static readonly string MA_VERSION = "1.3.2";
+        public static readonly string MA_VERSION = "1.3";
 
-        public Boolean HasServerMod { get; set; }
+        public Boolean HasServerMod { get; set;  }
         public String ServerModVersion { get; set; }
-        public Config MultiAdminCfg { get; set; }
+        public Config MultiAdminCfg { get; }
         public Config ServerConfig
         {
             get
@@ -22,16 +24,17 @@ namespace MultiAdmin.MultiAdmin
                 return serverConfig;
             }
         }
-        public String ConfigKey { get; set; }
-        public String MainConfigLocation { get; set; }
-        public String ConfigChain { get; set;  }
-        public String ServerDir { get; set;  }
+        public String ConfigKey { get; }
+        public String MainConfigLocation { get; }
+        public String ConfigChain { get; }
+        public String ServerDir { get; }
 
         private Config serverConfig;
-        public Boolean InitialRoundStarted { get; set; }
+        public Boolean InitialRoundStarted { get; set;
+        }
 
-        public List<Feature> Features { get; set; }
-        public Dictionary<String, ICommand> Commands { get; set; }
+        public List<Feature> Features { get; }
+        public Dictionary<String, ICommand> Commands { get; }
         private List<IEventTick> tick; // we want a tick only list since its the only event that happens constantly, all the rest can be in a single list
 
         private Thread readerThread;
@@ -42,8 +45,8 @@ namespace MultiAdmin.MultiAdmin
         private Boolean stopping;
         private String session_id;
         private String maLogLocation;
-		public String StartDateTime { get; set; }
-        public String LogFolder { get; set; }
+		public String StartDateTime { get; }
+        public String LogFolder { get; }
         public Boolean fixBuggedPlayers;
 
 		private String currentLine = "";
@@ -138,12 +141,30 @@ namespace MultiAdmin.MultiAdmin
 
                     Write("Проблемма с игрой *Lag.Crash.ServerIsFull* ( выход/краш/закрытие/перезапуск )", ConsoleColor.Red);
                     Write("Очищение сессии", ConsoleColor.Red);
-                    DeleteSession();
 					session_id = Utils.GetUnixTime().ToString();
-					Write("Запуск новой игры с новым ID сессии");
+					Write("Запуск новой сессии");
+                    try
+                    {
+
+                        Encoding encoding = Encoding.UTF8;
+                        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                        socket.Connect(MultiAdminCfg.GetValue("bot_ip", "false"), 3000);
+                        Write("%' " + MultiAdminCfg.GetValue("server_tag", "false") + ", CRASH");
+                        byte[] buffer = encoding.GetBytes("%' " + MultiAdminCfg.GetValue("server_tag", "false") + ", CRASH");
+                        socket.Send(buffer);
+                        socket.Disconnect(true);
+                        Console.WriteLine("Отправлено CRUSH сообщение", ConsoleColor.Green);
+
+                    }
+                    catch
+                    {
+
+                        Console.WriteLine("Ошибка в отправке CRASH сообщения", ConsoleColor.Red);
+
+                    }
                     StartServer();
                     InitFeatures();
-
                 }
 
                 Thread.Sleep(1000);

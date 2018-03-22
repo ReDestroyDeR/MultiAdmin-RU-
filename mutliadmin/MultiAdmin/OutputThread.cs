@@ -143,7 +143,7 @@ namespace MultiAdmin
 						{
 							if (f is IEventAdminAction)
 							{
-								((IEventAdminAction)f).OnAdminAction(gameMessage.Replace("Админ-Лог:", ""));
+								((IEventAdminAction)f).OnAdminAction(gameMessage.Replace("Действие Админа:", ""));
 							}
 						}
 					}

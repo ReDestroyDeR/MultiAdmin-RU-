@@ -7,6 +7,7 @@ namespace MultiAdmin.MultiAdmin.Features
 	{
 		private Boolean logToOwnFile;
 		private String modLogLocation;
+        private String fromWho;
 
 		public ModLog(Server server) : base(server)
 		{
@@ -24,8 +25,10 @@ namespace MultiAdmin.MultiAdmin.Features
 
 		public override void Init()
 		{
-			logToOwnFile = true;
-			this.modLogLocation = Server.LogFolder + Server.StartDateTime + "_MODERATOR_output_log.txt";
+
+            logToOwnFile = false;
+            this.fromWho = Server.MultiAdminCfg.GetValue("server_tag", "false");
+			this.modLogLocation = "modlogs" + Path.DirectorySeparatorChar + System.DateTime.Now.ToString("yyyy-MM-dd") + "_MODERATOR_output_log.txt";
 		}
 
 		public void OnAdminAction(string message)
@@ -36,7 +39,7 @@ namespace MultiAdmin.MultiAdmin.Features
 				{
 					using (StreamWriter sw = File.AppendText(this.modLogLocation))
 					{
-						sw.WriteLine(message);
+						sw.WriteLine(fromWho+": "+message.Substring(9, message.Length - 9));
 					}
 				}
 			}

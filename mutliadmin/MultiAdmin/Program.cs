@@ -39,25 +39,25 @@ namespace MutliAdmin
 
 			if (!File.Exists(path))
 			{
-				Write("Default config file not in expected location (" + path + "), copying config_template.txt");
+				Write("Стандартный конфиг файл ожидался (" + path + "), копирование config_template.txt");
 				File.Copy("config_template.txt", path);
 			}
 
             if (File.Exists(path))
             {
                 configLocation = path;
-                Program.Write("Config file located at: " + path, ConsoleColor.DarkYellow);
+                Program.Write("Конфиг файл создан: " + path, ConsoleColor.DarkYellow);
 
                 if (!File.Exists(backup))
                 {
-                    Program.Write("Config file has not been backed up, creating backup copy under: " + backup, ConsoleColor.DarkYellow);
+                    Program.Write("У конфига нету бекапа, создание бекапа под: " + backup, ConsoleColor.DarkYellow);
                     File.Copy(path, backup);
                 }
             }
             else
             {
 				// should never happen
-				throw new FileNotFoundException("Config.txt file not found! something has gone wrong with initial setup, try running LocalAdmin.exe first");
+				throw new FileNotFoundException("Config.txt не найден! Что то пошле не так при инсталяции, попробуйте запустить LocalAdmin.exe first");
             }
 
 			return true;

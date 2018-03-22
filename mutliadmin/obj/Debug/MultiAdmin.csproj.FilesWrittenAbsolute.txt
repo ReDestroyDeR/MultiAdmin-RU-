@@ -1,0 +1,3 @@
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\.NETFramework,Version=v4.6.AssemblyAttribute.cs
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.exe
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.pdb
