@@ -328,14 +328,13 @@ namespace MultiAdmin
 						}
 								
 
-                    	else {
+                    	else 
                     		server.Write(gameMessage.Trim(), colour);
                     	}
                     } 
                 }
-                Thread.Sleep(10);
-            }
-
+            Thread.Sleep(10);
         }
+
     }
 }

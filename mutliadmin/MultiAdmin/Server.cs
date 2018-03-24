@@ -145,22 +145,39 @@ namespace MultiAdmin.MultiAdmin
 					Write("Запуск новой сессии");
                     try
                     {
+                        // Connection Data
+                        int port = Convert.ToInt32(MultiAdminCfg.GetValue("bot_port", "false"));
+                        string ip = MultiAdminCfg.GetValue("bot_ip", "false");
 
+                        // null checks
+
+                        if ( port < 80 )
+                        {
+                            port = 80;
+                        }
+
+                        if ( ip == null || ip == "" )
+                        {
+                            ip = "127.0.0.1";
+                        }
+
+                        // Links
                         Encoding encoding = Encoding.UTF8;
                         Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                        socket.Connect(MultiAdminCfg.GetValue("bot_ip", "false"), 3000);
-                        Write("%' " + MultiAdminCfg.GetValue("server_tag", "false") + ", CRASH");
+
+                        // Body
+                        socket.Connect(ip, port);
                         byte[] buffer = encoding.GetBytes("%' " + MultiAdminCfg.GetValue("server_tag", "false") + ", CRASH");
                         socket.Send(buffer);
                         socket.Disconnect(true);
-                        Console.WriteLine("Отправлено CRUSH сообщение", ConsoleColor.Green);
+                        Write("Отправлено CRUSH сообщение", ConsoleColor.Green);
 
                     }
                     catch
                     {
 
-                        Console.WriteLine("Ошибка в отправке CRASH сообщения", ConsoleColor.Red);
+                        Write("Ошибка в отправке CRASH сообщения", ConsoleColor.Red);
 
                     }
                     StartServer();
@@ -353,7 +370,7 @@ namespace MultiAdmin.MultiAdmin
                 string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "SCPSL.*", SearchOption.TopDirectoryOnly);
                 Write("Исполнение: " + files[0], ConsoleColor.DarkGreen);
                 SwapConfigs();
-                string args = "-batchmode -nographics -key" + session_id  + " -silent-crashes -id" + (object)Process.GetCurrentProcess().Id + " -logFile \"" + LogFolder + Utils.GetDate() + "_SCP_output_log.txt" + "\"";
+                string args = "-batchmode -nographics -key" + session_id  + " -silent-crashes -id" + (object)Process.GetCurrentProcess().Id;
                 Write("Запуск сервера с параметрами");
                 Write(files[0] + " " + args);
                 gameProcess = Process.Start(files[0], args);
