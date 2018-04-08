@@ -9,3 +9,10 @@ D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.csprojResolveAssemb
 D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.exe
 D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.pdb
 D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.csproj.CoreCompileInputs.cache
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.MultiAdmin.GUI.resources
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.Properties.Resources.resources
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.MultiAdmin.GUI.ru-RU.resources
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.csproj.GenerateResource.cache
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\ru-RU\MultiAdmin.resources.dll
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\MultiAdmin.MultiAdmin.GUI.ru.resources
+D:\Desktop\MultiAdmin-master\mutliadmin\obj\Debug\ru\MultiAdmin.resources.dll

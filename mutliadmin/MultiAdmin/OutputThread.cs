@@ -29,7 +29,7 @@ namespace MultiAdmin
                 {
 					if (!server.IsStopping())
 					{
-						server.Write("Ошибка выводителя сообщений: Директория 'SCPSL_Data/Dedicated' не найдена.", ConsoleColor.Yellow);
+						server.Write("Ошибка выводителя сообщений: Директория 'SCPSL_Data/Dedicated' не найдена.");
 					}                    
                 }
 
@@ -59,7 +59,7 @@ namespace MultiAdmin
                             attempts++;
 							if (attempts >= 100)
 							{
-								server.Write("Ошибка выводителя сообщений: Невозможно " + fileCommand + " файл " + path + ". Убедитесь что MultiAdmin.exe имеет все права для Чтения/Записи.", ConsoleColor.Yellow);
+								server.Write("Ошибка выводителя сообщений: Невозможно " + fileCommand + " файл " + path + ". Убедитесь что MultiAdmin.exe имеет все права для Чтения/Записи.");
 								server.Write("пропуск");
 							}
                         }
@@ -69,7 +69,6 @@ namespace MultiAdmin
                     if (server.IsStopping()) break;
 
                     Boolean display = true;
-                    ConsoleColor colour = ConsoleColor.Cyan;
 
                     if (!string.IsNullOrEmpty(gameMessage.Trim()))
                     {
@@ -77,22 +76,6 @@ namespace MultiAdmin
                         {
                             String type = gameMessage.Substring(gameMessage.IndexOf("LOGTYPE")).Trim();
                             gameMessage = gameMessage.Substring(0, gameMessage.IndexOf("LOGTYPE")).Trim();
-
-                            switch(type)
-                            {
-                                case "LOGTYPE02":
-                                    colour = ConsoleColor.Green;
-                                    break;
-                                case "LOGTYPE-8":
-                                    colour = ConsoleColor.DarkRed;
-                                    break;
-                                case "LOGTYPE14":
-									colour = ConsoleColor.Magenta;
-                                    break;
-                                default:
-                                    colour = ConsoleColor.Cyan;
-                                    break;
-                            }
                         }
                        
                     }
@@ -105,32 +88,10 @@ namespace MultiAdmin
 					{
 						if (match.Groups.Count >= 2)
 						{
-							ConsoleColor levelColour = ConsoleColor.Cyan;
-							ConsoleColor tagColour = ConsoleColor.Yellow;
-							ConsoleColor msgColour = ConsoleColor.White;
-							switch (match.Groups[1].Value.Trim())
-							{
-								case "[DEBUG]":
-									levelColour = ConsoleColor.Gray;
-									break;
-								case "[INFO]":
-									levelColour = ConsoleColor.Green;
-									break;
-								case "[WARN]":
-									levelColour = ConsoleColor.DarkYellow;
-									break;
-								case "[ERROR]":
-									levelColour = ConsoleColor.Red;
-									msgColour = ConsoleColor.Red;
-									break;
-								default:
-									colour = ConsoleColor.Cyan;
-									break;
-							}
-							server.WritePart("", ConsoleColor.Cyan, 0, true, false);
-							server.WritePart(match.Groups[1].Value + " ", levelColour, 0, false, false);
-							server.WritePart(match.Groups[2].Value + " ", tagColour, 0, false, false);
-							server.WritePart(match.Groups[3].Value, msgColour, 0, false, true);
+							server.WritePart("", 0, true, false);
+							server.WritePart(match.Groups[1].Value + " ", 0, false, false);
+							server.WritePart(match.Groups[2].Value + " ", 0, false, false);
+							server.WritePart(match.Groups[3].Value, 0, false, true);
 							display = false;
 						}
 
@@ -300,37 +261,37 @@ namespace MultiAdmin
                     if (display) {
 
                     	if (gameMessage.Contains("Round restarting")) {
-                    		server.Write("Перезапуск раунда", colour);
+                    		server.Write("Перезапуск раунда");
                     	}
                     		
 
                     	else if (gameMessage.Contains("Waiting for players")) {
-                    		server.Write("Ожидание игроков", colour);
+                    		server.Write("Ожидание игроков");
                     	}
                     		
 						else if (gameMessage.Contains("New round has been started")) {
-							server.Write("Новый раунд был начат", colour);
+							server.Write("Новый раунд был начат");
 						}
 								
 
 						else if (gameMessage.Contains("Level loaded. Creating match...")) {
-							server.Write("Уровень загружен. Создание матча...", colour);
+							server.Write("Уровень загружен. Создание матча...");
 						}
 							
 
 						else if (gameMessage.Contains("Server full")) {
-							server.Write("Сервер полон", colour);
+							server.Write("Сервер полон");
 						}
 								
 
 						else if (gameMessage.Contains("Player has connected before load is complete")) {
-							server.Write("Игрок подключился до завершения загрузки", colour);
+							server.Write("Игрок подключился до завершения загрузки");
 						}
 								
 
                     	else
                         {
-                            server.Write(gameMessage.Trim(), colour);
+                            server.Write(gameMessage.Trim());
                         }
                     }
                 }

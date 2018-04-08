@@ -25,11 +25,23 @@ namespace MultiAdmin.MultiAdmin.Features
 
 		public override void Init()
 		{
-
             logToOwnFile = false;
+            this.modLogLocation = "modlogs" + Path.DirectorySeparatorChar + System.DateTime.Now.ToString("yyyy-MM-dd") + "_MODERATOR_output_log.txt";
             this.fromWho = Server.MultiAdminCfg.GetValue("server_tag", "false");
-			this.modLogLocation = "modlogs" + Path.DirectorySeparatorChar + System.DateTime.Now.ToString("yyyy-MM-dd") + "_MODERATOR_output_log.txt";
-		}
+            Server.modLogPath = this.modLogLocation;
+
+            while (true) 
+            {
+                if (this.fromWho == "false")
+                {
+                    this.fromWho = Server.MultiAdminCfg.GetValue("server_tag", "false");
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
 
 		public void OnAdminAction(string message)
 		{
@@ -39,7 +51,14 @@ namespace MultiAdmin.MultiAdmin.Features
 				{
 					using (StreamWriter sw = File.AppendText(this.modLogLocation))
 					{
-						sw.WriteLine(fromWho+": "+message.Substring(9, message.Length - 9));
+                        string data = fromWho + ": " + message.Substring(9, message.Length - 9);
+                        // Проверка по параше
+                        if (!(data.Contains("::ffff:")))
+                        {
+                            data += "`%";
+                        }
+                        sw.WriteLine(data);
+                        GUI.UpdateModLog(data.Substring(0, data.Length - 2));
 					}
 				}
 			}

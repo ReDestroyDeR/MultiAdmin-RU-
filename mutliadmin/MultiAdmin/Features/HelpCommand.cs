@@ -55,7 +55,7 @@ namespace MultiAdmin.MultiAdmin.Features
 
             foreach (String line in helpOutput)
             {
-                Server.Write(line, ConsoleColor.Green);
+                Server.Write(line);
             }
 
             Server.Write("Команды Игры:");

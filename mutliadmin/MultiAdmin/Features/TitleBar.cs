@@ -40,12 +40,14 @@ namespace MultiAdmin.MultiAdmin.Commands
 
         public void OnPlayerConnect(String name)
         {
+            Console.Write("Player Connected " + name + Environment.NewLine);
             playerCount++;
             UpdateTitlebar();
         }
 
         public void OnPlayerDisconnect(String name)
         {
+            Console.Write("Player Disconnected " + name + Environment.NewLine);
             playerCount--;
             UpdateTitlebar();
         }
@@ -57,25 +59,32 @@ namespace MultiAdmin.MultiAdmin.Commands
 
         public void UpdateTitlebar()
         {
-			if (Server.SkipProcessHandle() || Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero)
+			if (Server.SkipProcessHandle() || Process.GetCurrentProcess().
+                MainWindowHandle != IntPtr.Zero)
 			{
                 var displayPlayerCount = playerCount;
                 var smod = "";
 
 				if (Server.HasServerMod)
 				{
-					smod = "SMod " + Server.ServerModVersion;
+					smod = Server.ServerModVersion;
 				}
-                else if (displayPlayerCount != 0)
-                {
-                    smod = "Проверка на Сервер Мод . . .";
-                }
                 else {
-                    smod = "Установите СерверМод!";
+                    smod = "SMod Не найден";
                 }
 				if (playerCount == -1) displayPlayerCount = 0;
 				string proccessId = (Server.GetGameProccess() == null) ? "Запуск сервера . . ." : Server.GetGameProccess().Id.ToString();
-				Console.Title = "MultiAdmin-RU " + Server.MA_VERSION + " | " + Server.ConfigKey + " | Session:" + Server.GetSessionId() + " PID: " + proccessId + " | " + displayPlayerCount + "/" + maxPlayers + " | " + smod;
+                // MA_Version
+                // ServerName
+                // Players
+                // MaxPlayers
+                // SMod Version
+                GUI.ServerData[0] = Server.MA_VERSION;
+                GUI.ServerData[1] = Server.MultiAdminCfg.GetValue("server_tag");
+                GUI.ServerData[2] = displayPlayerCount.ToString();
+                GUI.ServerData[3] = maxPlayers.ToString();
+                GUI.ServerData[4] = smod;
+                GUI.UpdateServerInfo();
 			}
         }
     }

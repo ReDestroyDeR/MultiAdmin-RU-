@@ -38,7 +38,7 @@ namespace MultiAdmin.MultiAdmin.Commands
         {
             if (args.Length == 0)
             {
-                Server.Write("Имя конфига гони сюда", ConsoleColor.Magenta);
+                Server.Write("Имя конфига гони сюда");
             }
             else
             {

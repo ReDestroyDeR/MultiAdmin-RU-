@@ -3,18 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using MultiAdmin.MultiAdmin.Commands;
 using MultiAdmin.MultiAdmin.Features;
+using MutliAdmin;
 
 namespace MultiAdmin.MultiAdmin
 {
     public class Server
     {
-        public static readonly string MA_VERSION = "1.3";
+        public static readonly string MA_VERSION = "Pre 2.0";
 
-        public Boolean HasServerMod { get; set;  }
+        public Boolean HasServerMod { get; set; }
         public String ServerModVersion { get; set; }
         public Config MultiAdminCfg { get; }
         public Config ServerConfig
@@ -30,14 +33,13 @@ namespace MultiAdmin.MultiAdmin
         public String ServerDir { get; }
 
         private Config serverConfig;
-        public Boolean InitialRoundStarted { get; set;
-        }
+        public Boolean InitialRoundStarted { get; set; }
 
         public List<Feature> Features { get; }
         public Dictionary<String, ICommand> Commands { get; }
         private List<IEventTick> tick; // we want a tick only list since its the only event that happens constantly, all the rest can be in a single list
 
-        private Thread readerThread;
+        private Thread loopThread;
         private Thread printerThread;
 
         private int logID;
@@ -45,14 +47,22 @@ namespace MultiAdmin.MultiAdmin
         private Boolean stopping;
         private String session_id;
         private String maLogLocation;
-		public String StartDateTime { get; }
+        public String StartDateTime { get; }
         public String LogFolder { get; }
         public Boolean fixBuggedPlayers;
 
-		private String currentLine = "";
+        public static Boolean GUIIsOn;
+        public static DateTime serverStart;
+        public static String modLogPath;
+
+        public static List<String> UniqueBase = new List<String>();
+        public static Process Monitor { get; set; }
+
+        private String currentLine = "";
 
         public Server(String serverDir, String configKey, Config multiAdminCfg, String mainConfigLocation, String configChain)
         {
+            serverStart = DateTime.Now;
             MainConfigLocation = mainConfigLocation;
             ConfigKey = configKey;
             ConfigChain = configChain;
@@ -63,11 +73,11 @@ namespace MultiAdmin.MultiAdmin
             tick = new List<IEventTick>();
             MultiAdminCfg = multiAdminCfg;
             LogFolder = "servers" + Path.DirectorySeparatorChar + ConfigKey + Path.DirectorySeparatorChar + "logs" + Path.DirectorySeparatorChar;
-			StartDateTime = Utils.GetDate();
-			maLogLocation = LogFolder + StartDateTime + "_MA_output_log.txt";
+            StartDateTime = Utils.GetDate();
+            maLogLocation = LogFolder + StartDateTime + "_MA_output_log.txt";
             stopping = false;
             InitialRoundStarted = false;
-            readerThread = new Thread(new ThreadStart(() => InputThread.Write(this)));
+            loopThread = new Thread(new ThreadStart(() => MainLoop()));
             printerThread = new Thread(new ThreadStart(() => OutputThread.Read(this)));
 
             // Register all features 
@@ -79,9 +89,8 @@ namespace MultiAdmin.MultiAdmin
             // Start the server and threads
             if (StartServer())
             {
-                readerThread.Start();
                 printerThread.Start();
-                MainLoop();
+                loopThread.Start();
             }
         }
 
@@ -92,20 +101,21 @@ namespace MultiAdmin.MultiAdmin
             RegisterFeature(new ChainStart(this));
             RegisterFeature(new ConfigReload(this));
             RegisterFeature(new ExitCommand(this));
-            //RegisterFeature(new EventTest(this));
+            // RegisterFeature(new EventTest(this));
             RegisterFeature(new GithubGenerator(this));
             RegisterFeature(new GithubLogSubmitter(this));
             RegisterFeature(new HelpCommand(this));
             RegisterFeature(new InactivityShutdown(this));
             RegisterFeature(new MemoryChecker(this));
             RegisterFeature(new MemoryCheckerSoft(this));
-			RegisterFeature(new ModLog(this));
-			RegisterFeature(new MultiAdminInfo(this));
+            RegisterFeature(new ModLog(this));
+            RegisterFeature(new MultiAdminInfo(this));
             RegisterFeature(new NewCommand(this));
-			RegisterFeature(new Restart(this));
-			RegisterFeature(new RestartNextRound(this));
+            RegisterFeature(new Restart(this));
+            RegisterFeature(new RestartNextRound(this));
             RegisterFeature(new RestartRoundCounter(this));
             RegisterFeature(new StopNextRound(this));
+            RegisterFeature(new UniqueLogins(this));
             RegisterFeature(new Titlebar(this));
         }
 
@@ -119,7 +129,7 @@ namespace MultiAdmin.MultiAdmin
         }
 
         public void MainLoop()
-        {
+        { 
             while (!stopping)
             {
                 if (gameProcess != null && !gameProcess.HasExited)
@@ -139,10 +149,10 @@ namespace MultiAdmin.MultiAdmin
                         }
                     }
 
-                    Write("Проблемма с игрой *Lag.Crash.ServerIsFull* ( выход/краш/закрытие/перезапуск )", ConsoleColor.Red);
-                    Write("Очищение сессии", ConsoleColor.Red);
-					session_id = Utils.GetUnixTime().ToString();
-					Write("Запуск новой сессии");
+                    Write("Проблемма с игрой *Lag.Crash.ServerIsFull* ( выход/краш/закрытие/перезапуск )");
+                    Write("Очищение сессии");
+                    session_id = Utils.GetUnixTime().ToString();
+                    Write("Запуск новой сессии");
                     try
                     {
                         // Connection Data
@@ -151,12 +161,12 @@ namespace MultiAdmin.MultiAdmin
 
                         // null checks
 
-                        if ( port < 80 )
+                        if (port < 80)
                         {
                             port = 80;
                         }
 
-                        if ( ip == null || ip == "" )
+                        if (ip == null || ip == "")
                         {
                             ip = "127.0.0.1";
                         }
@@ -171,19 +181,18 @@ namespace MultiAdmin.MultiAdmin
                         byte[] buffer = encoding.GetBytes("%' " + MultiAdminCfg.GetValue("server_tag", "false") + ", CRASH");
                         socket.Send(buffer);
                         socket.Disconnect(true);
-                        Write("Отправлено CRUSH сообщение", ConsoleColor.Green);
+                        Write("Отправлено CRUSH сообщение");
 
                     }
                     catch
                     {
 
-                        Write("Ошибка в отправке CRASH сообщения", ConsoleColor.Red);
+                        Write("Ошибка в отправке CRASH сообщения");
 
                     }
                     StartServer();
                     InitFeatures();
                 }
-
                 Thread.Sleep(1000);
             }
             Thread.Sleep(100);
@@ -197,7 +206,7 @@ namespace MultiAdmin.MultiAdmin
 
         public void RegisterFeature(Feature feature)
         {
-            if (feature is IEventTick) tick.Add((IEventTick) feature);
+            if (feature is IEventTick) tick.Add((IEventTick)feature);
             if (feature is ICommand)
             {
                 ICommand command = (ICommand)feature;
@@ -213,32 +222,25 @@ namespace MultiAdmin.MultiAdmin
             try
             {
                 Directory.CreateDirectory("SCPSL_Data" + Path.DirectorySeparatorChar + "Dedicated" + Path.DirectorySeparatorChar + session_id);
-                Write("Начата новая сессия.", ConsoleColor.DarkGreen);
+                Write("Начата новая сессия.");
             }
             catch
             {
-                Write("Неудача - Пожалуйста закройте все файлы в SCPSL_Data/Dedicated и перезапустите игру!", ConsoleColor.Red);
-                Write("Нажмите любую кнопку для выхода...", ConsoleColor.DarkGray);
-                Console.ReadKey(true);
-                Process.GetCurrentProcess().Kill();
+                Write("Неудача - Пожалуйста закройте все файлы в SCPSL_Data/Dedicated и перезапустите игру!");
+                Write("Закройте сервер самостоятельно.");
             }
 
         }
 
-        public void Write(String message, ConsoleColor color = ConsoleColor.Yellow, int height = 0)
+        public void Write(String message, int height = 0)
         {
             Log(message);
             if (Server.SkipProcessHandle() || Process.GetCurrentProcess().MainWindowHandle != IntPtr.Zero)
-			{
-				Console.CursorTop += height;
-				Console.ForegroundColor = color;
-				DateTime now = DateTime.Now;
-				string str = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
-				Console.WriteLine(message == "" ? "" : str + message);
-				Console.ForegroundColor = ConsoleColor.White;
-				Console.BackgroundColor = ConsoleColor.Black;
-			}
-
+            {
+                DateTime now = DateTime.Now;
+                string str = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
+                GUI.Write(message == "" ? "" : str + message);
+            }
         }
 
         public static bool SkipProcessHandle()
@@ -247,86 +249,84 @@ namespace MultiAdmin.MultiAdmin
             return (p == 4) || (p == 6) || (p == 128); // Outputs true for Unix
         }
 
-		public void WritePart(String part, ConsoleColor color = ConsoleColor.Yellow, int height = 0, bool date = false, bool lineEnd = false)
-		{
-			String datepart = "";
-			if (date)
-			{
-				DateTime now = DateTime.Now;
-				datepart = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
-			}
-			Console.CursorTop += height;
-			Console.ForegroundColor = color;
-			if (lineEnd)
-			{
-				Console.Write(datepart + part + Environment.NewLine);
-				Log(currentLine);
-				currentLine = "";
-			}
-			else
-			{
-				Console.Write(datepart +  part);
-			}
-		}
+        public void WritePart(String part, int height = 0, bool date = false, bool lineEnd = false)
+        {
+            String datepart = "";
+            if (date)
+            {
+                DateTime now = DateTime.Now;
+                datepart = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
+            }
+            if (lineEnd)
+            {
+                GUI.Write(datepart + part + Environment.NewLine);
+                Log(currentLine);
+                currentLine = "";
+            }
+            else
+            {
+                GUI.Write(datepart + part);
+            }
+        }
 
         public void Log(String message)
         {
-			lock(this)
-			{
-				using (StreamWriter sw = File.AppendText(this.maLogLocation))
-				{
-					DateTime now = DateTime.Now;
-					string date = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
-					sw.WriteLine(date + message);
-				}
-			}
+            lock (this)
+            {
+                using (StreamWriter sw = File.AppendText(this.maLogLocation))
+                {
+                    DateTime now = DateTime.Now;
+                    string date = "[" + now.Hour.ToString("00") + ":" + now.Minute.ToString("00") + ":" + now.Second.ToString("00") + "] ";
+                    sw.WriteLine(date + message);
+                }
+            }
 
         }
 
-		public void SoftRestartServer()
-		{
-			if (ServerModCheck(1, 5, 0))
-			{
-				SendMessage("RECONNECTRS");
-				session_id = Utils.GetUnixTime().ToString();
-			}
-			else
-			{
-				gameProcess.Kill();
-			}
+        public void SoftRestartServer()
+        {
+            if (ServerModCheck(1, 5, 0))
+            {
+                SendMessage("RECONNECTRS");
+                session_id = Utils.GetUnixTime().ToString();
+            }
+            else
+            {
+                gameProcess.Kill();
+            }
         }
 
-		public Boolean ServerModCheck(int major, int minor, int fix)
-		{
-			if (this.ServerModVersion == null)
-			{
-				return false;
-			}
+        public Boolean ServerModCheck(int major, int minor, int fix)
+        {
+            if (this.ServerModVersion == null)
+            {
+                return false;
+            }
 
-			String[] parts = ServerModVersion.Split('.');
-			int verMajor = 0;
-			int verMinor = 0;
-			int verFix = 0;
-			if (parts.Length == 3)
-			{
-				Int32.TryParse(parts[0], out verMajor);
-				Int32.TryParse(parts[1], out verMinor);
-				Int32.TryParse(parts[2], out verFix);
-			}
-			else if (parts.Length == 2)
-			{
-				Int32.TryParse(parts[0], out verMajor);
-				Int32.TryParse(parts[1], out verMinor);
-			}
-			else
-			{
-				return false;
-			}
+            String[] parts = ServerModVersion.Split('.');
+            int verMajor = 0;
+            int verMinor = 0;
+            int verFix = 0;
+            if (parts.Length == 3)
+            {
+                Int32.TryParse(parts[0], out verMajor);
+                Int32.TryParse(parts[1], out verMinor);
+                Int32.TryParse(parts[2], out verFix);
+            }
+            else if (parts.Length == 2)
+            {
+                Int32.TryParse(parts[0], out verMajor);
+                Int32.TryParse(parts[1], out verMinor);
+            }
+            else
+            {
+                return false;
+            }
 
-			if (major == 0 && minor == 0 && verFix == 0)
-			{
-				return false;
-			}
+            if (major == 0 && minor == 0 && verFix == 0)
+            {
+                return false;
+            }
 
             return (verMajor > major) || (verMajor >= major && verMinor > minor) || (verMajor >= major && verMinor >= minor && verFix >= fix);
 
@@ -368,9 +368,9 @@ namespace MultiAdmin.MultiAdmin
             {
                 PrepareFiles();
                 string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "SCPSL.*", SearchOption.TopDirectoryOnly);
-                Write("Исполнение: " + files[0], ConsoleColor.DarkGreen);
+                Write("Исполнение: " + files[0]);
                 SwapConfigs();
-                string args = "-batchmode -nographics -key" + session_id  + " -silent-crashes -id" + (object)Process.GetCurrentProcess().Id;
+                string args = "-batchmode -nographics -key" + session_id + " -silent-crashes -id" + (object)Process.GetCurrentProcess().Id;
                 Write("Запуск сервера с параметрами");
                 Write(files[0] + " " + args);
                 gameProcess = Process.Start(files[0], args);
@@ -386,12 +386,10 @@ namespace MultiAdmin.MultiAdmin
             }
             catch (Exception e)
             {
-                Write("Неудача - Исполняемый файл не найден или конфиг поврежден!", ConsoleColor.Red);
-                Write(e.Message, ConsoleColor.Red);
-                Write("Нажмите любую кнопку, для выхода...", ConsoleColor.DarkGray);
+                Write("Неудача - Исполняемый файл не найден или конфиг поврежден!");
+                Write(e.Message);
+                Write("Закройте сервер самостоятельно.");
                 RemoveRunFile();
-                Console.ReadKey(true);
-                Process.GetCurrentProcess().Kill();
             }
 
             return started;
@@ -408,11 +406,11 @@ namespace MultiAdmin.MultiAdmin
             {
                 var contents = File.ReadAllText(Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "servers" + Path.DirectorySeparatorChar + ConfigKey + Path.DirectorySeparatorChar + "config.txt");
                 File.WriteAllText(MainConfigLocation, contents);
-                Write("Файл конфига сменен", ConsoleColor.DarkYellow);
+                Write("Файл конфига сменен");
             }
             else
             {
-                Write("Конфиг для этого сервера " + ConfigKey + " не существует! Предпологаемая локация:" + "servers\\" + ConfigKey + "\\config.txt", ConsoleColor.DarkYellow);
+                Write("Конфиг для этого сервера " + ConfigKey + " не существует! Предпологаемая локация:" + "servers\\" + ConfigKey + "\\config.txt");
                 throw new FileNotFoundException("config file not found");
             }
 
@@ -430,22 +428,22 @@ namespace MultiAdmin.MultiAdmin
 
         private void CleanSession()
         {
-			String path = "SCPSL_Data" + Path.DirectorySeparatorChar + "Dedicated" + Path.DirectorySeparatorChar + session_id;
-			if (Directory.Exists(path))
-			{
-				foreach (String file in Directory.GetFiles(path))
-				{
-					File.Delete(file);
-				}
-			}
+            String path = "SCPSL_Data" + Path.DirectorySeparatorChar + "Dedicated" + Path.DirectorySeparatorChar + session_id;
+            if (Directory.Exists(path))
+            {
+                foreach (String file in Directory.GetFiles(path))
+                {
+                    File.Delete(file);
+                }
+            }
 
         }
 
         private void DeleteSession()
         {
             CleanSession();
-			string path = "SCPSL_Data" + Path.DirectorySeparatorChar + "Dedicated" + Path.DirectorySeparatorChar + session_id;
-			if (Directory.Exists(path)) Directory.Delete(path);
+            string path = "SCPSL_Data" + Path.DirectorySeparatorChar + "Dedicated" + Path.DirectorySeparatorChar + session_id;
+            if (Directory.Exists(path)) Directory.Delete(path);
         }
 
 
@@ -472,8 +470,7 @@ namespace MultiAdmin.MultiAdmin
             logID++;
             streamWriter.WriteLine(message + "terminator");
             streamWriter.Close();
-            Write("Отправка запроса к игре...", ConsoleColor.White);
+            Write("Отправка запроса к игре...");
         }
-
     }
 }

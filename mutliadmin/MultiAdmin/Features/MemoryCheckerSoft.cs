@@ -41,7 +41,7 @@ namespace MultiAdmin.MultiAdmin.Commands
 
             if (memoryLeft < lowMb)
             {
-                if (!warn) Server.Write("Warning: program is running low on memory (" + memoryLeft + " MB left) the server will restart at the end of the round if it continues", ConsoleColor.Red);
+                if (!warn) Server.Write("Warning: program is running low on memory (" + memoryLeft + " MB left) the server will restart at the end of the round if it continues");
                 warn = true;
                 tickCount++;
             }

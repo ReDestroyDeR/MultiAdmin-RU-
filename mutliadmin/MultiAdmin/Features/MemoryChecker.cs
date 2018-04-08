@@ -37,7 +37,7 @@ namespace MultiAdmin.MultiAdmin.Commands
 
             if (memoryLeft < lowMb)
             {
-                Server.Write("Внимание: программа запущенна с недостаточной памятью (" + memoryLeft + " MB осталось)", ConsoleColor.Red);
+                Server.Write("Внимание: программа запущенна с недостаточной памятью (" + memoryLeft + " MB осталось)");
                 tickCount++;
             }
             else
@@ -47,7 +47,7 @@ namespace MultiAdmin.MultiAdmin.Commands
 
             if (tickCount == 10)
             {
-                Server.Write("Перезапуск в связи с недосатком памяти", ConsoleColor.Red);
+                Server.Write("Перезапуск в связи с недосатком памяти");
                 Server.SoftRestartServer();
             }
  

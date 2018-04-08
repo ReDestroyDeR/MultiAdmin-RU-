@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-
+using MultiAdmin.MultiAdmin;
 
 namespace MultiAdmin
 {
@@ -51,8 +51,8 @@ namespace MultiAdmin
 								values.Add(current_key, current_value.Substring(0, current_value.Length - 1).Trim());
 							}
 							else
-							{
-								Console.WriteLine("Найден дупликат для найстройки " + current_key + " с значением " + current_value + " использую существующее значение. Игра может этого не делать, пожалуйста исправьте ошибку");
+							{                           
+						        GUI.Write("Найден дупликат для найстройки " + current_key + " с значением " + current_value + " использую существующее значение. Игра может этого не делать, пожалуйста исправьте ошибку");
 							}
                             
                         }
@@ -89,7 +89,7 @@ namespace MultiAdmin
             }
             else
             {
-                Console.WriteLine("ПРЕДУПРЕЖДЕНИЕ: невозможно использовать целочисленное значение для настройки конфига:" + key + " использую стандартное значение.");
+                GUI.Write("ПРЕДУПРЕЖДЕНИЕ: невозможно использовать целочисленное значение для настройки конфига:" + key + " использую стандартное значение.");
                 return def;
             }
         }
